@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { token_set_ratio as tokenSetRatio } from 'fuzzball'
 
 import pkg from '../../package.json'
 
@@ -9,15 +10,35 @@ const STORAGE_DIR = `${HOME_DIR}/.config/${pkg.name}`
 const STORAGE_FILE_PATH = `${STORAGE_DIR}/storage.json`
 const VSCODE_STORAGE_FILE = `${HOME_DIR}/Library/Application Support/Code/User/workspaceStorage`
 
-export function getTargetDirectories({allDir, query}) {
-  return allDir.filter(dirPath => {
-    const basename = path.basename(dirPath)
-    if (!basename.toLocaleLowerCase().includes(query.toLowerCase())) return false
-    return dirPath
-  })
+export function getTargetDirectories({ allDir, query }) {
+  const normalizedQuery = query.toLocaleLowerCase()
+
+  return allDir
+    .map(dir => {
+      const basename = path.basename(dir)
+      const normalizedBasename = basename.toLocaleLowerCase()
+      const ratio = tokenSetRatio(normalizedBasename, normalizedQuery)
+      const startsWithQuery = normalizedBasename.startsWith(normalizedQuery)
+      const containsQuery = normalizedBasename.includes(normalizedQuery)
+
+      return {
+        dir,
+        ratio,
+        startsWithQuery,
+        containsQuery,
+      }
+    })
+    .filter(item => item.containsQuery || item.ratio >= 30)
+    .sort((a, b) => {
+      if (a.startsWithQuery !== b.startsWithQuery) return a.startsWithQuery ? -1 : 1
+      if (a.containsQuery !== b.containsQuery) return a.containsQuery ? -1 : 1
+      return b.ratio - a.ratio
+    })
+    .map(({ dir }) => dir)
+    .slice(0, 10)
 }
 
-export function getAllDirectory({searchPath, searchDepth, ignoreDir}) {
+export function getAllDirectory({ searchPath, searchDepth, ignoreDir }) {
   const result = []
   const ignoreDirs = ignoreDir.split(',')
 
@@ -45,7 +66,7 @@ export function getAllDirectory({searchPath, searchDepth, ignoreDir}) {
           })
         )
       }
-    } catch (e) {}
+    } catch {}
   }
 
   return result
@@ -73,7 +94,7 @@ export function getRecentDirectories() {
       const folderPath = decodeURIComponent(folderUrl.slice(7)) // "file:///Users/frankie/web/demo"
 
       try {
-        if (fs.statSync(folderPath).isDirectory()) return {...dir, targetPath: folderPath}
+        if (fs.statSync(folderPath).isDirectory()) return { ...dir, targetPath: folderPath }
         return false
       } catch {
         return false
@@ -87,15 +108,15 @@ export function getRecentDirectories() {
   return result
 }
 
-export function getStorageDirectories({storageKey, ignoreDir}) {
+export function getStorageDirectories({ storageKey, ignoreDir }) {
   try {
     if (!fs.existsSync(STORAGE_DIR)) {
-      fs.mkdirSync(STORAGE_DIR, {recursive: true})
+      fs.mkdirSync(STORAGE_DIR, { recursive: true })
     }
 
-    const now = new Date().getTime()
+    const now = Date.now()
     if (!fs.existsSync(STORAGE_FILE_PATH)) {
-      const content = {updated_at: now}
+      const content = { updated_at: now }
       fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(content, null, 2))
     }
 
@@ -103,11 +124,11 @@ export function getStorageDirectories({storageKey, ignoreDir}) {
     try {
       const storageData = fs.readFileSync(STORAGE_FILE_PATH, 'utf8')
       storageJson = JSON.parse(storageData)
-    } catch (e) {
+    } catch {
       fs.unlinkSync(STORAGE_FILE_PATH)
     }
 
-    if (!storageJson.ignore_dir !== ignoreDir) return []
+    if (storageJson.ignore_dir !== ignoreDir) return []
 
     const current = storageJson[storageKey]
     if (!current) return []
@@ -116,28 +137,28 @@ export function getStorageDirectories({storageKey, ignoreDir}) {
     if (overOneMinute) return []
 
     return current.dirs || []
-  } catch (e) {
+  } catch {
     return []
   }
 }
 
-export function updateStorageDirectories({storageKey, ignoreDir, dirs}) {
+export function updateStorageDirectories({ storageKey, ignoreDir, dirs }) {
   try {
     const storageContents = fs.readFileSync(STORAGE_FILE_PATH, 'utf8')
     let storageJson = JSON.parse(storageContents) // { updated_at, [storageKey]: { updated_at: ignore_dir, dirs} }
 
     const shouldOverride = Object.keys(storageJson).length > 21
 
-    const now = new Date().getTime()
+    const now = Date.now()
     if (shouldOverride) {
-      storageJson = {updated_at: now}
+      storageJson = { updated_at: now }
     } else {
       storageJson.updated_at = now
     }
 
     storageJson.ignore_dir = ignoreDir
-    storageJson[storageKey] = {dirs, updated_at: now}
+    storageJson[storageKey] = { dirs, updated_at: now }
 
     fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(storageJson, null, 2))
-  } catch (e) {}
+  } catch {}
 }

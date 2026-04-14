@@ -1,16 +1,23 @@
 {
   "name": "alfred-open-with-vscode",
-  "version": "0.0.9",
-  "packageManager": "pnpm@8.5.0",
-  "description": "💻 An Alfred Workflow for opening folders with Visual Studio Code.",
+  "type": "module",
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.32.0",
+  "description": "💻 An Alfred workflow for opening folders with Visual Studio Code",
   "author": {
     "name": "Frankie",
     "email": "1426203851@qq.com",
     "url": "https://github.com/toFrankie"
   },
   "license": "MIT",
-  "homepage": "https://github.com/toFrankie/alfred-open-with-vscode#readme",
-  "bugs": "https://github.com/toFrankie/alfred-open-with-vscode/issues",
+  "homepage": "https://github.com/toFrankie/alfred-open-with-vscode",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tofrankie/alfred-open-with-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/toFrankie/alfred-open-with-vscode/issues"
+  },
   "keywords": [
     "alfred",
     "workflow",
@@ -22,9 +29,9 @@
     "alfred-open-with-vscode-import": "bin/install.sh"
   },
   "files": [
-    "bin",
+    "CHANGELOG.md",
     "alfred-open-with-vscode.alfredworkflow",
-    "CHANGELOG.md"
+    "bin"
   ],
   "engines": {
     "node": ">=10.0.0"
@@ -34,25 +41,30 @@
     "access": "public"
   },
   "scripts": {
-    "lint": "eslint . --fix",
     "build": "run-s build:js build:alfred",
     "build:js": "rollup -c",
     "build:alfred": "node scripts/build.js",
-    "prepublish": "run-s lint build"
+    "prepublish": "run-s lint build",
+    "lint": "run-s eslint:fix prettier:fix",
+    "eslint:fix": "eslint . --fix --cache",
+    "prettier:fix": "prettier . --write --cache '!pnpm-lock.yaml'"
+  },
+  "dependencies": {
+    "fuzzball": "^2.2.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.8",
-    "@babel/plugin-transform-runtime": "^7.21.4",
-    "@babel/preset-env": "^7.21.5",
-    "@ifanrx/eslint-config-standard": "^1.0.0",
-    "@ifanrx/prettier-config-standard": "^1.0.0",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.2",
-    "adm-zip": "^0.5.10",
-    "eslint": "^8.40.0",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.8.8",
-    "rollup": "^3.21.7"
+    "@babel/core": "^7.29.0",
+    "@babel/plugin-transform-runtime": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@rollup/plugin-babel": "^7.0.0",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@tofrankie/eslint": "^0.2.1",
+    "@tofrankie/prettier": "^0.2.0",
+    "adm-zip": "^0.5.17",
+    "eslint": "^10.2.0",
+    "npm-run-all2": "^8.0.4",
+    "prettier": "^3.8.2",
+    "rollup": "^4.60.1"
   }
 }

@@ -1,12 +1,12 @@
-const {defineConfig} = require('rollup')
-const resolve = require('@rollup/plugin-node-resolve')
-const json = require('@rollup/plugin-json')
-const babel = require('@rollup/plugin-babel')
+import babel from '@rollup/plugin-babel'
+import json from '@rollup/plugin-json'
+import resolve from '@rollup/plugin-node-resolve'
+import { defineConfig } from 'rollup'
 
-module.exports = defineConfig({
+export default defineConfig({
   input: './src/index.js',
   output: {
-    file: 'dist/bundle.js',
+    file: 'dist/bundle.cjs',
     format: 'cjs',
     exports: 'named',
     sourcemap: false,
@@ -17,7 +17,7 @@ module.exports = defineConfig({
     babel({
       exclude: 'node_modules/**',
       babelHelpers: 'bundled',
-      presets: [['@babel/preset-env', {targets: {node: '10'}}]],
+      presets: [['@babel/preset-env', { targets: { node: '10' } }]],
     }),
   ],
 })

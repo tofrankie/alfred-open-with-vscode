@@ -86,7 +86,7 @@
           <string>Seaching...</string>
           <key>script</key>
           <string>source "$HOME/.zshrc"
-$(which node) ./bundle.js "$1" "$searchPath" "$searchDepth" "$ignoreDir"</string>
+$(which node) ./bundle.cjs "$1" "$searchPath" "$searchDepth" "$ignoreDir"</string>
           <key>scriptargtype</key>
           <integer>1</integer>
           <key>scriptfile</key>
